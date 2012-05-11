@@ -44,63 +44,43 @@
                                                    otherButtonTitles:nil] autorelease];
             [alert show];
         } else {
-            NSLog(@"Authenticated successfully!");
+            EvernoteUserStore *userStore = [EvernoteUserStore userStore];            
+            [userStore getUserWithSuccess:^(EDAMUser *user) {
+                [usernameField setText:[user username]];
+                [self countAllNotesAndSetTextField];                
+            } failure:^(NSError *error) {
+                NSLog(@"getUserWithSuccess Failed: %@", error);
+            }];
         } 
-    }];
-    
-    EvernoteUserStore *userStore = [EvernoteUserStore userStore];
-
-    [userStore getUserWithSuccess:^(EDAMUser *user) {
-        NSLog(@"Username: %@", user.username);
-        [usernameField setText:[user username]];
-        if ([session isAuthenticated]) {
-            NSLog(@"Session is authenticated");
-            [self countAllNotesAndSetTextField:session];
-        } else {
-            NSLog(@"Session not authenticated");
-        }
-
-    } failure:^(NSError *error) {
-        NSLog(@"getUserWithSuccess Failed: %@", error);
-    }];
-       
+    }];    
 }
 
-- (int)countAllNotesAndSetTextField:(EvernoteSession *)session
+- (void)countAllNotesAndSetTextField
 {
-    EvernoteNoteStore *noteStore = [EvernoteNoteStore noteStore];
-    
     __block int noteCount = 0;
-    
+
+    EvernoteNoteStore *noteStore = [EvernoteNoteStore noteStore];
     [noteStore listNotebooksWithSuccess:^(NSArray *notebooks) {
-        
-        
         for (EDAMNotebook *notebook in notebooks) {
             if ([notebook guid]) {
                 EDAMNoteFilter *filter = [[EDAMNoteFilter alloc] init];
                 [filter setNotebookGuid:[notebook guid]];
                 [noteStore findNoteCountsWithFilter:filter withTrash:NO success:^(EDAMNoteCollectionCounts *counts) {
                     if (counts) {
+                        // update the notecount and textfield as we receive results
                         NSNumber *notebookCount = (NSNumber *)[[counts notebookCounts] objectForKey:[notebook guid]];
-                        NSLog(@"Notebook Count: %d", [notebookCount intValue]);
                         noteCount = noteCount + [notebookCount intValue];
-                        NSLog(@"After iteration: %d", noteCount);
+                        NSString *noteCountString = [NSString stringWithFormat:@"%d", noteCount];
+                        [noteCountField setText:noteCountString];
                     }
                 } failure:^(NSError *error) {
                     NSLog(@"Did not get note counts: %@", error);
                 }];
             }
-        }
-//        NSString *noteCountString = [NSString stringWithFormat:@"%d", noteCount];
-//        NSLog(@"Count: %@", noteCountString);
-//        [noteCountField setText:noteCountString];
-        
+        }        
     } failure:^(NSError *error) {
         NSLog(@"Error getting notebooks: %@", error);
     }];
-
-    NSLog(@"%d", noteCount);
-    return noteCount;
 }
 
 @end

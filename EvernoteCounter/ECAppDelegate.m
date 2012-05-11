@@ -37,7 +37,6 @@
     
     NSString *CONSUMER_KEY = @"inkedmn";
     NSString *CONSUMER_SECRET = @"aa273e653c2dbebc";
-    
     EvernoteSession *session = [[[EvernoteSession alloc] init] autorelease];
     [session setHost:EVERNOTE_HOST];
     [session setConsumerKey:CONSUMER_KEY];
@@ -73,6 +72,14 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url {
+    // delegate to the Evernote session singleton
+    if ([[EvernoteSession sharedSession] handleOpenURL:url]) {
+        return YES;
+    } 
+    return NO;
 }
 
 @end
