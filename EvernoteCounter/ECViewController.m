@@ -32,11 +32,21 @@
     return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
 }
 
-- (IBAction)retrieveNoteCount:(id)sender
+- (IBAction)retrieveUserNameAndNoteCount:(id)sender
 {
+    // Create local reference to shared session singleton
     EvernoteSession *session = [EvernoteSession sharedSession];
+    
     [session authenticateWithCompletionHandler:^(NSError *error) {
+        // Authentication response is handled in this block
         if (error || !session.isAuthenticated) {
+            // Either we couldn't authenticate or something else went wrong - inform the user
+            if (error) {
+                NSLog(@"Error authenticating with Evernote service: %@", error);
+            }
+            if (!session.isAuthenticated) {
+                NSLog(@"User could not be authenticated.");
+            }
             UIAlertView *alert = [[[UIAlertView alloc] initWithTitle:@"Error" 
                                                              message:@"Could not authenticate" 
                                                             delegate:nil 
@@ -44,12 +54,16 @@
                                                    otherButtonTitles:nil] autorelease];
             [alert show];
         } else {
-            EvernoteUserStore *userStore = [EvernoteUserStore userStore];            
+            // We're authenticated!
+            EvernoteUserStore *userStore = [EvernoteUserStore userStore];
+            // Retrieve the authenticated user as an EDAMUser instance
             [userStore getUserWithSuccess:^(EDAMUser *user) {
+                // Set usernameField (UILabel) text value to username
                 [usernameField setText:[user username]];
+                // Retrieve total note count and display it
                 [self countAllNotesAndSetTextField];                
             } failure:^(NSError *error) {
-                NSLog(@"getUserWithSuccess Failed: %@", error);
+                NSLog(@"Error retrieving authenticated user: %@", error);
             }];
         } 
     }];    
@@ -57,6 +71,7 @@
 
 - (void)countAllNotesAndSetTextField
 {
+    // Allow access to this variable within the block context below (using __block keyword)
     __block int noteCount = 0;
 
     EvernoteNoteStore *noteStore = [EvernoteNoteStore noteStore];
@@ -67,19 +82,20 @@
                 [filter setNotebookGuid:[notebook guid]];
                 [noteStore findNoteCountsWithFilter:filter withTrash:NO success:^(EDAMNoteCollectionCounts *counts) {
                     if (counts) {
-                        // update the notecount and textfield as we receive results
+                        
+                        // Get note count for the current notebook and add it to the displayed total
                         NSNumber *notebookCount = (NSNumber *)[[counts notebookCounts] objectForKey:[notebook guid]];
                         noteCount = noteCount + [notebookCount intValue];
                         NSString *noteCountString = [NSString stringWithFormat:@"%d", noteCount];
                         [noteCountField setText:noteCountString];
                     }
                 } failure:^(NSError *error) {
-                    NSLog(@"Did not get note counts: %@", error);
+                    NSLog(@"Error while retrieving note counts: %@", error);
                 }];
             }
         }        
     } failure:^(NSError *error) {
-        NSLog(@"Error getting notebooks: %@", error);
+        NSLog(@"Error while retrieving notebooks: %@", error);
     }];
 }
 

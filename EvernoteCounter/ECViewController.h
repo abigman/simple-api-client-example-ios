@@ -14,6 +14,6 @@
 @property (strong, nonatomic) IBOutlet UILabel *noteCountField;
 @property (strong, nonatomic) IBOutlet UIButton *noteCountButton;
 
-- (IBAction)retrieveNoteCount:(id)sender;
+- (IBAction)retrieveUserNameAndNoteCount:(id)sender;
 
 @end

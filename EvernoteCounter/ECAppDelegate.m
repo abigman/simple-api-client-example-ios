@@ -7,7 +7,6 @@
 //
 
 #import "ECAppDelegate.h"
-
 #import "ECViewController.h"
 #import "EvernoteSession.h"
 
@@ -34,9 +33,11 @@
     // Set up Evernote OAuth 
     
     NSString *EVERNOTE_HOST = @"sandbox.evernote.com";
+    // NSString *CONSUMER_KEY = @"inkedmn";
+    NSString *CONSUMER_KEY = @"your-key";
+    //NSString *CONSUMER_SECRET = @"aa273e653c2dbebc";
+    NSString *CONSUMER_SECRET = @"your-secret";
     
-    NSString *CONSUMER_KEY = @"inkedmn";
-    NSString *CONSUMER_SECRET = @"aa273e653c2dbebc";
     EvernoteSession *session = [[[EvernoteSession alloc] init] autorelease];
     [session setHost:EVERNOTE_HOST];
     [session setConsumerKey:CONSUMER_KEY];
