@@ -33,9 +33,7 @@
     // Set up Evernote OAuth 
     
     NSString *EVERNOTE_HOST = @"sandbox.evernote.com";
-    // NSString *CONSUMER_KEY = @"inkedmn";
     NSString *CONSUMER_KEY = @"your-key";
-    //NSString *CONSUMER_SECRET = @"aa273e653c2dbebc";
     NSString *CONSUMER_SECRET = @"your-secret";
     
     EvernoteSession *session = [[[EvernoteSession alloc] init] autorelease];
