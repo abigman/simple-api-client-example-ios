@@ -27,8 +27,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 #import "EDAM.h"
+#import "ENOAuthViewController.h"
 
 // For Evernote-related error codes, see EDAMErrors.h
 
@@ -38,7 +39,7 @@ typedef void (^EvernoteAuthCompletionHandler)(NSError *error);
 /*
  * Evernote Session, using OAuth to authenticate.
  */
-@interface EvernoteSession : NSObject
+@interface EvernoteSession : NSObject <ENOAuthViewControllerDelegate>
 
 @property (nonatomic, retain) NSString *host;
 @property (nonatomic, retain) NSString *consumerKey;
@@ -51,22 +52,33 @@ typedef void (^EvernoteAuthCompletionHandler)(NSError *error);
 // Will only be non-nil once we've authenticated.
 @property (nonatomic, readonly) NSString *authenticationToken;
 
+// URL for the Evernote UserStore.
+@property (nonatomic, readonly) NSString *userStoreUrl;
+
+// URL for the Evernote NoteStore for the authenticated user.
+// Will only be non-nil once we've authenticated.
+@property (nonatomic, readonly) NSString *noteStoreUrl;
+
+// URL prefix for the web API.
+// Will only be non-nil once we've authenticated.
+@property (nonatomic, readonly) NSString *webApiUrlPrefix;
+
 // Shared dispatch queue for API operations.
 @property (nonatomic, readonly) dispatch_queue_t queue;
 
-@property (nonatomic, copy) EvernoteAuthCompletionHandler completionHandler;
-
-// Set the shared session.
-+ (void)setSharedSession:(EvernoteSession *)session;
+// Set up the shared session.
+// @"sandbox.evernote.com" should be used for testing; 
+// @"www.evernote.com" for production apps.
++ (void)setSharedSessionHost:(NSString *)host 
+                 consumerKey:(NSString *)consumerKey 
+              consumerSecret:(NSString *)consumerSecret;
 
 // Get the singleton shared session.
 + (EvernoteSession *)sharedSession;
 
-// URL handler. Call this from your AppDelegate's application:handleOpenURL: method.
-- (BOOL)handleOpenURL:(NSURL *)url;
-
 // Authenticate, calling the given handler upon completion.
-- (void)authenticateWithCompletionHandler:(EvernoteAuthCompletionHandler)completionHandler;
+- (void)authenticateWithViewController:(UIViewController *)viewController
+                     completionHandler:(EvernoteAuthCompletionHandler)completionHandler;
 
 // Clear authentication.
 - (void)logout;
@@ -87,15 +99,13 @@ typedef void (^EvernoteAuthCompletionHandler)(NSError *error);
 // Exposed for unit testing.
 - (void)verifyConsumerKeyAndSecret;
 
-// Exposed for unit testing.
-- (void)verifyCFBundleURLSchemes;
-
 // Abstracted into a method to support unit testing.
-- (void)openBrowserWithURL:(NSURL *)url;
+- (void)openOAuthViewControllerWithURL:(NSURL *)authorizationURL;
 
 // Abstracted into a method to support unit testing.
 - (void)saveCredentialsWithEdamUserId:(NSString *)edamUserId 
                          noteStoreUrl:(NSString *)noteStoreUrl
+                      webApiUrlPrefix:(NSString *)webApiUrlPrefix
                   authenticationToken:(NSString *)authenticationToken;
 
 @end

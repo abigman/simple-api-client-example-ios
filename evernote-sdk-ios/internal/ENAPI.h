@@ -40,7 +40,7 @@
 - (id)initWithSession:(EvernoteSession *)session;
 
 // Make an NSError from a given NSException.
-+ (NSError *)errorFromNSException:(NSException *)exception;
+- (NSError *)errorFromNSException:(NSException *)exception;
 
 // asynchronously invoke the given blocks, 
 // calling back to success/failure on the main threa.
