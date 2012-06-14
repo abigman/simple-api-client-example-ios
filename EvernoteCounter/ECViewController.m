@@ -32,6 +32,11 @@
     return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
 }
 
+- (IBAction)logoutOfEvernoteSession:(id)sender
+{
+    [[EvernoteSession sharedSession] logout];
+}
+
 - (IBAction)retrieveUserNameAndNoteCount:(id)sender
 {
     // Create local reference to shared session singleton
