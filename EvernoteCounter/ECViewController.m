@@ -37,7 +37,7 @@
     // Create local reference to shared session singleton
     EvernoteSession *session = [EvernoteSession sharedSession];
     
-    [session authenticateWithCompletionHandler:^(NSError *error) {
+    [session authenticateWithViewController:self completionHandler:^(NSError *error) {
         // Authentication response is handled in this block
         if (error || !session.isAuthenticated) {
             // Either we couldn't authenticate or something else went wrong - inform the user
