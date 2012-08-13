@@ -148,11 +148,11 @@
 
 - (void)createTestNote:(id)sender
 {    
+   
     /*
-     First, do the image stuff.
+    Create the EDAMNote object for our note. Set the note title,
+    add root XML node and declare DTD
     */
-    // Get image as binary data, populate NSData object
-    
     EDAMNote *note = [[EDAMNote alloc] init];
     [note setTitle:@"Test Note from EvernoteCounter for iPhone"];
     NSString *xml = @"<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
