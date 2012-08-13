@@ -144,33 +144,6 @@
     hash = [hash substringWithRange:NSMakeRange(1, [hash length] - 2)];
     return hash;
     
-    /* 
-     This routine was mostly boosted from this Stack Overflow post: http://bit.ly/OUcqVn
-     Submission is copyright 2011, Stack Overflow user "tommi":
-     http://stackoverflow.com/users/575090/tommi
-     Reproduced here in accordance with terms of the CC-WIKI with Attribution license.
-    */
-    
-    
-    /*
-    
-    NSString *imageString = [[NSString alloc] initWithData:imageData encoding:NSASCIIStringEncoding];
-    NSLog(@"Image String, %@", imageString);
-    const char *cStr = [imageString UTF8String];
-    unsigned char digest[16];
-    CC_MD5( cStr, strlen(cStr), digest );
-    
-    NSMutableString *output = [NSMutableString stringWithCapacity:CC_MD5_DIGEST_LENGTH * 2];
-    
-    for(int i = 0; i < CC_MD5_DIGEST_LENGTH; i++)
-        [output appendFormat:@"%02x", digest[i]];
-    
-    NSLog(@"Hash as string: %@", output);
-    //return [output dataUsingEncoding:NSASCIIStringEncoding];
- 
-    return output;
-     
-    */
 }
 
 - (void)createTestNote:(id)sender
@@ -179,41 +152,67 @@
      First, do the image stuff.
     */
     // Get image as binary data, populate NSData object
-    NSLog(@"Selected image: %@", [self selectedImage]);
-    NSData *imageData = [[NSData alloc] initWithData:UIImageJPEGRepresentation([self selectedImage], 1.0)];
-    NSString *imageHashString = [self makeMD5HashFromImageData:imageData];
-    NSData *imageHashData = [imageHashString dataUsingEncoding:NSUTF8StringEncoding];
-
-    EDAMData *edamImage = [[EDAMData alloc] initWithBodyHash:imageHashData
-                                                        size:(int32_t)[imageData length]  
-                                                        body:imageData];
     
-    // Create and init EDAMResource instance for image
-    EDAMResource *imageResource = [[EDAMResource alloc] init];
-    [imageResource setData:edamImage];
-    [imageResource setMime:@"image/jpeg"];
-    [imageResource setHeight:[selectedImage size].height];
-    [imageResource setWidth:[selectedImage size].width];
-    
-    EDAMResourceAttributes *imageAttributes = [[EDAMResourceAttributes alloc] init];
-    [imageAttributes setFileName:@"image.jpg"];
-    [imageResource setAttributes:imageAttributes];
-    
-    NSLog(@"Height: %d", [imageResource height]);
-    NSLog(@"Width: %d", [imageResource width]);
-    NSLog(@"Image hash: %@", imageHashString);
-    NSLog(@"Image type: %@", [imageResource mime]);
-    
-    NSString *xml = @"<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-    NSString *doctype = @"<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">";
-    NSString *mediaResource = [[NSString alloc] initWithFormat:@"<en-media type=\"%@\" width=\"%d\" height=\"%d\" hash=\"%@\" />", [imageResource mime], [imageResource width], [imageResource height], imageHashString];
-
     EDAMNote *note = [[EDAMNote alloc] init];
     [note setTitle:@"Test Note from EvernoteCounter for iPhone"];
-    [note setContent:[[NSString alloc] initWithFormat:@"%@%@<en-note>%@</en-note>", xml, doctype, mediaResource]];
-    [note setResources:[[NSArray alloc] initWithObjects:imageResource, nil]];
+    NSString *xml = @"<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    NSString *doctype = @"<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">";
     
+    /*
+    Populate the body of the note. If an image has been selected, attach it
+    */
+    if ([self selectedImage])
+    {
+        // Read image as binary data
+        NSData *imageData = [[NSData alloc] initWithData:UIImageJPEGRepresentation([self selectedImage], 1.0)];
+        // Generate MD5 of image for the en-media hash value
+        NSString *imageHashString = [self makeMD5HashFromImageData:imageData];
+        // Convert MD5 to NSData for inclusion in the EDAMData object
+        NSData *imageHashData = [imageHashString dataUsingEncoding:NSUTF8StringEncoding];
+        
+        // Create and init EDAMData instance with image hash, file size and binary data
+        EDAMData *edamImage = [[EDAMData alloc] initWithBodyHash:imageHashData
+                                                            size:(int32_t)[imageData length]  
+                                                            body:imageData];
+        // Create and init EDAMResource, then set EDAMData, MIME type and resource dimensions
+        EDAMResource *imageResource = [[EDAMResource alloc] init];
+        [imageResource setData:edamImage];
+        [imageResource setMime:@"image/jpeg"];
+        [imageResource setHeight:[selectedImage size].height];
+        [imageResource setWidth:[selectedImage size].width];
+        
+        
+        // Include EDAMResourceAttribues object, which includes the image file name.
+        EDAMResourceAttributes *imageAttributes = [[EDAMResourceAttributes alloc] init];
+        [imageAttributes setFileName:@"image.jpg"];
+        [imageResource setAttributes:imageAttributes];
+        
+        NSLog(@"Height: %d", [imageResource height]);
+        NSLog(@"Width: %d", [imageResource width]);
+        NSLog(@"Image hash: %@", imageHashString);
+        NSLog(@"Image type: %@", [imageResource mime]);
+        
+        // Build the en-media tag including MIME type, dimensions and hash value.
+        // This will be inserted into the note body
+        NSString *mediaResource = [[NSString alloc] initWithFormat:@"<en-media type=\"%@\" width=\"%d\" height=\"%d\" hash=\"%@\" />", [imageResource mime], [imageResource width], [imageResource height], imageHashString];
 
+        // Generate note content ENML
+        [note setContent:[[NSString alloc] initWithFormat:@"%@%@<en-note>%@</en-note>", xml, doctype, mediaResource]];
+        // Add resources (our single image, in this case) to the EDAMNote object
+        [note setResources:[[NSArray alloc] initWithObjects:imageResource, nil]];
+        
+    } else {
+        /*
+        This block runs if no image has been selected by the user. It simply 
+        */
+        NSString *sampleText = @"You've succcessfully created a note!";
+        [note setContent:[[NSString alloc] initWithFormat:@"%@%@<en-note>%@</en-note>", xml, doctype, sampleText ]];
+    }
+    /*
+     selectedImage is an instance variable 
+     populated by imagePickerController:didFinishPickingMediaWithInfo
+     */
+    
     /*
     Create the note.
     */
