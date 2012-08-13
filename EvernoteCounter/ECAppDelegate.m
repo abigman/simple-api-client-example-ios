@@ -6,6 +6,7 @@
 //  Copyright (c) 2012 Personal. All rights reserved.
 //
 
+
 #import "ECAppDelegate.h"
 #import "ECViewController.h"
 #import "EvernoteSession.h"
@@ -32,9 +33,12 @@
     
     // Set up Evernote OAuth 
     
+    
     NSString *EVERNOTE_HOST = @"sandbox.evernote.com";
-    NSString *CONSUMER_KEY = @"your-key";
-    NSString *CONSUMER_SECRET = @"your-secret";
+    // NSString *CONSUMER_KEY = @"your-key";
+    NSString *CONSUMER_KEY = @"inkedmn";
+    // NSString *CONSUMER_SECRET = @"your-key";
+    NSString *CONSUMER_SECRET = @"aa273e653c2dbebc";
         
     [EvernoteSession setSharedSessionHost:EVERNOTE_HOST
                               consumerKey:CONSUMER_KEY
